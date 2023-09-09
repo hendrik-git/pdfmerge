@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 lopdf = "0.31.0"
 clap = "~2.27.0"
+colored = "2.0.4"
