@@ -41,7 +41,7 @@ pub fn run(config: Config) -> MyResult<()> {
     println!("  output file:  {}", config.out_file.clone().unwrap());
     println!("  inputs files: {:?}", config.files);
 
-    if config.files.is_empty() || config.files[0] == "" {
+    if config.files.is_empty() || config.files[0].is_empty() {
         return Err(String::from("No input files were specified").into());
     }
 
@@ -50,7 +50,7 @@ pub fn run(config: Config) -> MyResult<()> {
     for filename in &config.files {
         let filepath = std::path::Path::new(&filename);
         if !filepath.is_file() {
-            let error_msg = String::from("File does not exist: ") + &filename;
+            let error_msg = String::from("File does not exist: ") + filename;
             return Err(error_msg.into());
         } else {
             match Document::load(filepath) {
@@ -58,16 +58,14 @@ pub fn run(config: Config) -> MyResult<()> {
                     documents.push(res);
                 }
                 Err(_) => {
-                    let error_msg = String::from("Failed to load file: ") + &filename;
+                    let error_msg = String::from("Failed to load file: ") + filename;
                     return Err(error_msg.into());
                 }
             }
         }
     }
 
-    if let Err(err) = combine_files(documents, &config.out_file.unwrap()) {
-        return Err(err);
-    }
+    combine_files(documents, &config.out_file.unwrap())?;
 
     Ok(())
 }
@@ -90,12 +88,10 @@ pub fn combine_files(files: Vec<Document>, out_file: &str) -> MyResult<()> {
         max_id = doc.max_id + 1;
 
         documents_pages.extend(
-            doc.get_pages()
-                .into_iter()
-                .map(|(_, object_id)| {
+            doc.get_pages().into_values().map(|object_id| {
                     if !first {
                         let bookmark = Bookmark::new(
-                            String::from(format!("Page_{}", pagenum)),
+                            format!("Page_{}", pagenum),
                             [0.0, 0.0, 1.0],
                             0,
                             object_id,
@@ -201,9 +197,7 @@ pub fn combine_files(files: Vec<Document>, out_file: &str) -> MyResult<()> {
         // Set new "Kids" list (collected from documents pages) for "Pages"
         dictionary.set(
             "Kids",
-            documents_pages
-                .into_iter()
-                .map(|(object_id, _)| Object::Reference(object_id))
+            documents_pages.into_keys().map(|object_id| Object::Reference(object_id))
                 .collect::<Vec<_>>(),
         );
 
