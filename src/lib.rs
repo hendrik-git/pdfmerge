@@ -88,7 +88,9 @@ pub fn combine_files(files: Vec<Document>, out_file: &str) -> MyResult<()> {
         max_id = doc.max_id + 1;
 
         documents_pages.extend(
-            doc.get_pages().into_values().map(|object_id| {
+            doc.get_pages()
+                .into_values()
+                .map(|object_id| {
                     if !first {
                         let bookmark = Bookmark::new(
                             format!("Page_{}", pagenum),
@@ -197,7 +199,9 @@ pub fn combine_files(files: Vec<Document>, out_file: &str) -> MyResult<()> {
         // Set new "Kids" list (collected from documents pages) for "Pages"
         dictionary.set(
             "Kids",
-            documents_pages.into_keys().map(|object_id| Object::Reference(object_id))
+            documents_pages
+                .into_keys()
+                .map(Object::Reference)
                 .collect::<Vec<_>>(),
         );
 
