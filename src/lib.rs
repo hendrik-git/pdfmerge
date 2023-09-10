@@ -13,8 +13,8 @@ pub struct Config {
 
 pub fn get_args() -> MyResult<Config> {
     let matches = App::new("pdfmerge")
-        .version("0.1.0")
-        .author("Hendrik Pöttker")
+        .version("1.0.0")
+        .author("Hendrik Poettker")
         .about("merge pdfs")
         .arg(
             Arg::with_name("out_file")
