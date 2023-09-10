@@ -38,18 +38,35 @@ pub fn get_args() -> MyResult<Config> {
 }
 
 pub fn run(config: Config) -> MyResult<()> {
-    println!("Hello world from the run function:\n{:?}", config);
+    println!("  output file:  {}", config.out_file.clone().unwrap());
+    println!("  inputs files: {:?}", config.files);
 
-    for filename in config.files {
-        match open(&filename) {
-            Err(err) => eprintln!("{}: {}", filename, err),
-            Ok(_file) => {
-                // for line_result in file.lines() {
-                //     let line = line_result?;
-                //     println!("{}", line);
-                // }
+    if config.files.is_empty() || config.files[0] == "" {
+        return Err(String::from("No input files were specified").into());
+    }
+
+    let mut documents: Vec<Document> = Vec::new();
+
+    for filename in &config.files {
+        let filepath = std::path::Path::new(&filename);
+        if !filepath.is_file() {
+            let error_msg = String::from("File does not exist: ") + &filename;
+            return Err(error_msg.into());
+        } else {
+            match Document::load(filepath) {
+                Ok(res) => {
+                    documents.push(res);
+                }
+                Err(_) => {
+                    let error_msg = String::from("Failed to load file: ") + &filename;
+                    return Err(error_msg.into());
+                }
             }
         }
+    }
+
+    if let Err(err) = combine_files(documents, &config.out_file.unwrap()) {
+        return Err(err);
     }
 
     Ok(())
@@ -223,7 +240,7 @@ pub fn combine_files(files: Vec<Document>, out_file: &str) -> MyResult<()> {
             if let Object::Dictionary(ref mut dict) = x {
                 dict.set("Outlines", Object::Reference(n));
             }
-}
+        }
     }
 
     document.compress();
