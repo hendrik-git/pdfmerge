@@ -28,9 +28,9 @@ pub fn get_args() -> MyResult<Config> {
         .arg(
             Arg::with_name("files")
                 .value_name("FILE")
-                .help("Input file(s)")
+                .help("Input files")
                 .multiple(true)
-                .default_value("-"),
+                .default_value(""),
         )
         .get_matches();
     Ok(Config {
